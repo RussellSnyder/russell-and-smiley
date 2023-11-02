@@ -1,25 +1,47 @@
 ---
+const isDateInTheFuture = function (date: Date) {
+  const currentDate = new Date();
+  if (currentDate.setHours(0, 0, 0, 0) <= date.setHours(0, 0, 0, 0)) {
+    return true;
+  }
+
+  return false;
+};
+
+let data = {
+  title_en: undefined,
+  description_en: undefined,
+  title_de: undefined,
+  description_de: undefined,
+  show_until: undefined,
+};
+let showWidget = false;
+try {
+  const response = await fetch(
+    'https://api.cosmicjs.com/v3/buckets/paddys-last-order-production/objects/6542c3c69740a41fa4a6f86a?read_key=45150TE4Jjl5IhpcDNoNzMB7JKQAGxOKupelGqOWV3W1YPYMDP&depth=1&props=metadata,'
+  );
+  const json = await response.json();
+  if (!json.object) return;
+
+  data = json.object.metadata;
+
+  showWidget = !!data.show_until && isDateInTheFuture(new Date(data.show_until));
+} catch (e) {
+  console.log(e);
+}
 ---
 
-<div
-  class="text-muted text-sm bg-[#dbeafe] dark:bg-transparent dark:border-b dark:border-slate-800 dark:text-slate-400 hidden md:block overflow-hidden px-3 py-2 relative text-ellipsis whitespace-nowrap"
->
-  <span class="dark:bg-slate-700 bg-white/40 dark:text-slate-300 font-semibold px-1 py-0.5 text-xs mr-0.5 rtl:mr-0 rtl:ml-0.5 inline-block">NEW</span>
-  <a href="https://astro.build/blog/astro-3/" class="text-muted hover:underline dark:text-slate-400 font-medium"
-    >Astro 3.0 is here! »</a
-  >
-  <a
-    target="_blank"
-    rel="noopener"
-    class="float-right rtl:float-left"
-    title="If you like AstroWind, give us a star."
-    href="https://github.com/onwidget/astrowind"
-  >
-    <img
-      src="https://img.shields.io/github/stars/onwidget/astrowind.svg?style=social&label=Stars&maxAge=86400"
-      alt="Follow @onWidget"
-      width="84"
-      height="20"
-    />
-  </a>
-</div>
+<style is:global>
+  .cosmic-html a {
+    text-decoration: underline;
+  }
+</style>
+
+{
+  showWidget && (
+    <div class="m-2 p-3 rounded-r-lg border-l-4 border-amber-600 bg-slate-100 dark:bg-slate-900">
+      <h2 class="text-3xl mb-4">{data.title_en}</h2>
+      <div class="cosmic-html text-xl" set:html={data.description_en} />
+    </div>
+  )
+}
